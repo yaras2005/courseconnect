@@ -7,6 +7,7 @@ type Answer = {
   votes: number;
   author: string;
   isAnonymous: boolean;
+  isEndorsed: boolean;
 };
 export type Question = {
   id: string;
@@ -23,6 +24,7 @@ type CourseContextValue = {
   addQuestion: (q: { title: string; body: string; isAnonymous: boolean }) => void;
   voteQuestion: (id: string, delta: number) => void;
   addAnswer: (questionId: string, a: { body: string; isAnonymous: boolean }) => void;
+  endorseAnswer: (questionId: string, answerId: string) => void;
 };
 
 const CourseContext = createContext<CourseContextValue | null>(null);
@@ -36,6 +38,7 @@ export function CourseProvider({ children }: { children: React.ReactNode }) {
     isAnonymous: a.isAnonymous,
     author: a.isAnonymous ? "Anonymous" : "You",
     votes: 0,
+    isEndorsed: false
   };
 
   setQuestions((prev) =>
@@ -54,19 +57,31 @@ export function CourseProvider({ children }: { children: React.ReactNode }) {
       votes: 0,
       answers: [],
     };
-
-
     setQuestions((prev) => [newQuestion, ...prev]);
   };
-
-  const voteQuestion = (id: string, delta: number) => {
+   const endorseAnswer = (questionId: string, answerId: string) => {
+  setQuestions((prev) =>
+    prev.map((q) =>
+      q.id === questionId
+        ? {
+            ...q,
+            answers: q.answers.map((a) => ({
+              ...a,
+              isEndorsed: a.id === answerId, // only one endorsed
+            })),
+          }
+        : q
+    )
+  );
+};
+ const voteQuestion = (id: string, delta: number) => {
     setQuestions((prev) =>
       prev.map((q) => (q.id === id ? { ...q, votes: q.votes + delta } : q))
     );
   };
 
   const value = useMemo(
-  () => ({ questions, addQuestion, addAnswer, voteQuestion }),
+  () => ({ questions, addQuestion, addAnswer, voteQuestion, endorseAnswer }),
   [questions]
 );
 

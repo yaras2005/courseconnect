@@ -1,11 +1,11 @@
 import { useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, Switch, Text, TextInput, View } from "react-native";
-import { useCourse } from "../CourseContext";
+import { useCourse } from "../../../../src/course/CourseContext";
 
 export default function QuestionDetails() {
   const { id } = useLocalSearchParams();
-  const { questions, voteQuestion, addAnswer } = useCourse();
+  const { questions, voteQuestion, addAnswer, endorseAnswer } = useCourse();
 
   const question = useMemo(
     () => questions.find((q) => q.id === id),
@@ -99,18 +99,63 @@ export default function QuestionDetails() {
       <Text style={{ marginTop: 18, fontSize: 16, fontWeight: "800" }}>Answers</Text>
 
       {question.answers.length === 0 ? (
-        <Text style={{ marginTop: 8, opacity: 0.7 }}>No answers yet.</Text>
-      ) : (
-        question.answers.map((a) => (
-          <View key={a.id} style={{ borderWidth: 1, borderRadius: 12, padding: 12, marginTop: 10 }}>
-            <Text style={{ opacity: 0.9 }}>{a.body}</Text>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 8 }}>
-        <Text style={{ opacity: 0.7 }}>{a.isAnonymous ? "Anonymous" : a.author}</Text>
-        <Text style={{ fontWeight: "700" }}>⬆ {a.votes}</Text>
-      </View>
+  <Text style={{ marginTop: 8, opacity: 0.7 }}>No answers yet.</Text>
+) : (
+  [...question.answers]
+    .sort((a, b) => Number(b.isEndorsed) - Number(a.isEndorsed))
+    .map((a) => (
+      <View
+        key={a.id}
+        style={{
+          borderWidth: 1,
+          borderRadius: 12,
+          padding: 12,
+          marginTop: 10,
+          borderColor: a.isEndorsed ? "green" : "#ccc",
+          backgroundColor: a.isEndorsed ? "#eaffea" : "white",
+        }}
+      >
+        {a.isEndorsed && (
+          <Text style={{ color: "green", fontWeight: "800", marginBottom: 6 }}>
+            ⭐ Instructor Endorsed
+          </Text>
+        )}
+
+        <Text style={{ opacity: 0.9 }}>{a.body}</Text>
+
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            marginTop: 8,
+            alignItems: "center",
+          }}
+        >
+          <Text style={{ opacity: 0.7 }}>
+            {a.isAnonymous ? "Anonymous" : a.author}
+          </Text>
+
+          <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
+            <Text style={{ fontWeight: "700" }}>⬆ {a.votes}</Text>
+
+            <Pressable
+              onPress={() => endorseAnswer(question.id, a.id)}
+              style={{
+                paddingVertical: 6,
+                paddingHorizontal: 10,
+                borderRadius: 8,
+                borderWidth: 1,
+              }}
+            >
+              <Text style={{ fontSize: 12 }}>
+                {a.isEndorsed ? "Endorsed" : "Endorse"}
+              </Text>
+            </Pressable>
           </View>
-        ))
-      )}
+        </View>
+      </View>
+    ))
+)}
     </View>
   );
 }

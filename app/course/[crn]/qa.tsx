@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { FlatList, Pressable, Text, View } from "react-native";
-import { useCourse } from "./CourseContext";
+import { useCourse } from "../../../src/course/CourseContext";
 
 export default function QA() {
   const { crn } = useLocalSearchParams();

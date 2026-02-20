@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, Switch, Text, TextInput, View } from "react-native";
-import { useCourse } from "./CourseContext";
+import { useCourse } from "../../../src/course/CourseContext";
 
 export default function AskQuestion() {
   const { addQuestion } = useCourse();

@@ -1,37 +1,46 @@
-import type { Href } from "expo-router";
-import { useRouter } from "expo-router";
+import { router } from "expo-router";
 import { FlatList, Pressable, Text, View } from "react-native";
-
-const dummyCourses = [
-  { code: "CSC435", name: "Computer Security", crn: "12345", instructor: "Dr. X" },
-  { code: "CSC301", name: "Theory of Computation", crn: "67890", instructor: "Dr. Y" },
-];
+import { useCourses } from "../../src/course/CoursesContext";
 
 export default function Courses() {
-    const router = useRouter();
-  return (
+  const { courses, removeCourse } = useCourses();
+   return (
     <View style={{ flex: 1, padding: 16 }}>
-      <Text style={{ fontSize: 22, fontWeight: "700", marginBottom: 12 }}>
-        My Courses
-      </Text>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <Text style={{ fontSize: 22, fontWeight: "700" }}>My Courses</Text>
+
+        <Pressable
+          onPress={() => router.push("/add-course" as any)}
+          style={{ borderWidth: 1, borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12 }}
+        >
+          <Text style={{ fontWeight: "800" }}>+ Add</Text>
+        </Pressable>
+      </View>
 
       <FlatList
-        data={dummyCourses}
+        data={courses}
         keyExtractor={(item) => item.crn}
         ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
         renderItem={({ item }) => (
-          <Pressable
-onPress={() => router.push((`/course/${item.crn}/qa` as Href))}          >
-            <Text style={{ fontSize: 16, fontWeight: "700" }}>
-              {item.code}: {item.name}
-            </Text>
-            <Text style={{ marginTop: 4 }}>CRN: {item.crn}</Text>
-            <Text style={{ marginTop: 2, opacity: 0.7 }}>
-              Instructor: {item.instructor}
-            </Text>
-          </Pressable>
+          <View style={{ borderWidth: 1, borderRadius: 14, padding: 14 }}>
+            <Pressable onPress={() => router.push(`/course/${item.crn}/qa` as any)}>
+              <Text style={{ fontSize: 16, fontWeight: "700" }}>
+                {item.code}: {item.name}
+              </Text>
+              <Text style={{ marginTop: 4 }}>CRN: {item.crn}</Text>
+              <Text style={{ marginTop: 2, opacity: 0.7 }}>Instructor: {item.instructor}</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => removeCourse(item.crn)}
+              style={{ marginTop: 10, alignSelf: "flex-start", borderWidth: 1, borderRadius: 10, paddingVertical: 6, paddingHorizontal: 10 }}
+            >
+              <Text style={{ fontSize: 12 }}>Remove</Text>
+            </Pressable>
+          </View>
         )}
       />
     </View>
   );
 }
+        

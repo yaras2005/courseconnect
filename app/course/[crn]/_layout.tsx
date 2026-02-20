@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { CourseProvider } from "./CourseContext";
+import { CourseProvider } from "../../../src/course/CourseContext";
 
 export default function CourseLayout() {
   return (
