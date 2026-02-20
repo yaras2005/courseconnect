@@ -4,22 +4,14 @@ import { Pressable, Text, TextInput, View } from "react-native";
 import { useCourses } from "../../src/course/CoursesContext";
 
 export default function AddCourse() {
-  const { addCourse } = useCourses();
+  const { addCourseByCrn } = useCourses();
 
   const [crn, setCrn] = useState("");
-  const [code, setCode] = useState("");
-  const [name, setName] = useState("");
-  const [instructor, setInstructor] = useState("");
   const [error, setError] = useState("");
 
   const submit = () => {
     setError("");
-    const res = addCourse({
-      crn,
-      code: code.trim() || "COURSE",
-      name: name.trim() || "Untitled Course",
-      instructor: instructor.trim() || "TBA",
-    });
+    const res = addCourseByCrn(crn);
 
     if (!res.ok) return setError(res.error);
     router.back();
@@ -27,37 +19,16 @@ export default function AddCourse() {
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
-      <Text style={{ fontSize: 18, fontWeight: "800", marginBottom: 10 }}>Add a course</Text>
-
+      <Text style={{ fontSize: 18, fontWeight: "800", marginBottom: 10 }}>
+        Add a course by CRN
+      </Text>
       {error ? <Text style={{ color: "red", marginBottom: 10 }}>{error}</Text> : null}
 
       <TextInput
-        placeholder="CRN (digits)"
+        placeholder="Enter CRN (digits)"
         value={crn}
         onChangeText={setCrn}
         keyboardType="number-pad"
-        style={{ borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 10 }}
-      />
-
-      <TextInput
-        placeholder="Course code (e.g., CSC435)"
-        value={code}
-        onChangeText={setCode}
-        autoCapitalize="characters"
-        style={{ borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 10 }}
-      />
-
-      <TextInput
-        placeholder="Course name"
-        value={name}
-        onChangeText={setName}
-        style={{ borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 10 }}
-      />
-
-      <TextInput
-        placeholder="Instructor"
-        value={instructor}
-        onChangeText={setInstructor}
         style={{ borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 10 }}
       />
 

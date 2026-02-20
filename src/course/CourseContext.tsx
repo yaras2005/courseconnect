@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
-import { dummyQA } from "./dummyQA";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { dummyQAByCrn } from "./dummyQA";
+
 
 type Answer = {
   id: string;
@@ -29,9 +30,25 @@ type CourseContextValue = {
 
 const CourseContext = createContext<CourseContextValue | null>(null);
 
-export function CourseProvider({ children }: { children: React.ReactNode }) {
-  const [questions, setQuestions] = useState<Question[]>(dummyQA as Question[]);
-  const addAnswer = (questionId: string, a: { body: string; isAnonymous: boolean }) => {
+export function CourseProvider({ children, crn }: { children: React.ReactNode; crn:string }) {
+const [questionsByCrn, setQuestionsByCrn] = useState<Record<string, Question[]>>({});  
+
+useEffect(() => {
+    setQuestionsByCrn((prev) => {
+      if (prev[crn]) return prev;
+      return { ...prev, [crn]: dummyQAByCrn[crn] ?? [] };
+    });
+  }, [crn]);
+
+  const questions = questionsByCrn[crn] ?? [];
+
+  const setCourseQuestions = (updater: (current: Question[]) => Question[]) => {
+    setQuestionsByCrn((prev) => ({ ...prev, [crn]: updater(prev[crn] ?? []) }));
+  };
+
+
+
+const addAnswer = (questionId: string, a: { body: string; isAnonymous: boolean }) => {
   const newAnswer: Answer = {
     id: `a_${Date.now()}`,
     body: a.body.trim(),
@@ -41,8 +58,8 @@ export function CourseProvider({ children }: { children: React.ReactNode }) {
     isEndorsed: false
   };
 
-  setQuestions((prev) =>
-    prev.map((q) =>
+  setCourseQuestions((current) =>
+    current.map((q) =>
       q.id === questionId ? { ...q, answers: [...q.answers, newAnswer] } : q
     )
   );
@@ -57,10 +74,11 @@ export function CourseProvider({ children }: { children: React.ReactNode }) {
       votes: 0,
       answers: [],
     };
-    setQuestions((prev) => [newQuestion, ...prev]);
+    setCourseQuestions((current) => [newQuestion, ...current]);
   };
    const endorseAnswer = (questionId: string, answerId: string) => {
-  setQuestions((prev) =>
+  
+    setCourseQuestions((prev) =>
     prev.map((q) =>
       q.id === questionId
         ? {
@@ -75,7 +93,7 @@ export function CourseProvider({ children }: { children: React.ReactNode }) {
   );
 };
  const voteQuestion = (id: string, delta: number) => {
-    setQuestions((prev) =>
+    setCourseQuestions((prev) =>
       prev.map((q) => (q.id === id ? { ...q, votes: q.votes + delta } : q))
     );
   };
