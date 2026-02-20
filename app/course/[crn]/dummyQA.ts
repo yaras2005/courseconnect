@@ -7,9 +7,9 @@ export const dummyQA = [
     isAnonymous: false,
     votes: 12,
     answers: [
-      { id: "a1", body: "It happens when input is inserted into a query without validation.", votes: 5 },
-      { id: "a2", body: "Use parameterized queries / prepared statements to prevent it.", votes: 9 },
-    ],
+  { id: "a1", body: "It happens when input is inserted into a query without validation.", votes: 5, author: "Jad", isAnonymous: false },
+  { id: "a2", body: "Use parameterized queries / prepared statements to prevent it.", votes: 9, author: "Anonymous", isAnonymous: true },
+],
   },
   {
     id: "q2",
