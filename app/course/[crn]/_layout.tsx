@@ -6,8 +6,9 @@ export default function CourseLayout() {
   const {crn} = useLocalSearchParams();
 
   return (
-    <ResourcesProvider>
     <CourseProvider crn={String(crn)}>
+    <ResourcesProvider>
+    
       <Tabs>
         <Tabs.Screen name="qa" options={{ title: "Q&A" }} />
         <Tabs.Screen name="resources" options={{ title: "Resources" }} />
@@ -21,7 +22,8 @@ export default function CourseLayout() {
          <Tabs.Screen name="add-resource" options={{ title: "Upload", href: null }} />
           <Tabs.Screen name="resource/[id]" options={{ title: "Resource", href: null }} />
       </Tabs>
-    </CourseProvider>
+    
     </ResourcesProvider>
+    </CourseProvider>
   );
 }

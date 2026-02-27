@@ -94,14 +94,31 @@ async function getQuestionDetails(req, res) {
     if (qRows.length === 0) {
       return res.status(404).json({ error: "Question not found" });
     }
-
-    const [cRows] = await db.query(
-      `SELECT id, question_id, text, author, created_at
+    const [allComments] = await db.query(
+      `SELECT id, question_id, parent_comment_id, user_id, text, author, created_at
        FROM question_comments
        WHERE question_id = ?
        ORDER BY created_at ASC`,
       [id]
     );
+
+    const byId = new Map();
+    allComments.forEach(c => {
+      byId.set(c.id, { ...c, replies: [] });
+    });
+
+    // 2) build the tree
+    const topLevel = [];
+    allComments.forEach(c => {
+      const node = byId.get(c.id);
+      if (c.parent_comment_id) {
+        const parent = byId.get(c.parent_comment_id);
+        if (parent) parent.replies.push(node);
+        else topLevel.push(node); // fallback if parent missing
+      } else {
+        topLevel.push(node);
+      }
+    });
 
     res.json({
       ...qRows[0],
@@ -116,7 +133,7 @@ async function getQuestionDetails(req, res) {
 // POST /questions/:id/comments
 async function addQuestionComment(req, res) {
   const questionId = Number(req.params.id);
-  const { text } = req.body;
+  const { text, parentCommentId } = req.body;
 
   if (!text) {
     return res.status(400).json({ error: "text is required" });
@@ -130,15 +147,15 @@ async function addQuestionComment(req, res) {
     const authorName = uRows[0]?.name || "Unknown";
 
     const [result] = await db.query(
-      `INSERT INTO question_comments (question_id, user_id, text, author)
+      `INSERT INTO question_comments (question_id, parent_comment_id, user_id, text, author)
        VALUES (?, ?, ?, ?)`,
-      [questionId, userId, text, authorName]
+      [questionId, parentCommentId, userId, text, authorName]
     );
 
     const insertedId = result.insertId;
 
     const [rows] = await db.query(
-      `SELECT id, question_id, user_id, text, author, created_at
+      `SELECT id, question_id, parent_comment_id, user_id, text, author, created_at
        FROM question_comments WHERE id = ?`,
       [insertedId]
     );

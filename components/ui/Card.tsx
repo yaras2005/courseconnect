@@ -1,5 +1,6 @@
 import React from "react";
-import { View, ViewStyle } from "react-native";
+import { Platform, View, ViewStyle } from "react-native";
+import { theme } from "../../constants/theme";
 
 export function Card({
   children,
@@ -12,16 +13,20 @@ export function Card({
     <View
       style={[
         {
-          backgroundColor: "white",
-          borderRadius: 16,
+          backgroundColor: theme.colors.card,
+          borderRadius: theme.radius.card,
           padding: 14,
           borderWidth: 1,
-          borderColor: "#E5E7EB",
+          borderColor: theme.colors.border,
+
+          // iPhone-friendly shadow (soft + clean)
           shadowColor: "#000",
-          shadowOpacity: 0.06,
+          shadowOpacity: 0.04,
           shadowRadius: 10,
-          shadowOffset: { width: 0, height: 4 },
-          elevation: 2,
+          shadowOffset: { width: 0, height: 6 },
+
+          // Android fallback (very light)
+          elevation: Platform.OS === "android" ? 1 : 0,
         },
         style,
       ]}

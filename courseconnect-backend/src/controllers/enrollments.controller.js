@@ -48,5 +48,30 @@ async function enrollInCourse(req, res) {
     res.status(500).json({ error: "Server error" });
   }
 }
+async function getMyCourses(req, res) {
+  const userId = req.user.id;
 
-module.exports = { getEnrollmentCount, enrollInCourse };
+  try {
+    const [rows] = await db.query(
+      `
+      SELECT 
+        c.id,
+        c.code,
+        c.title,
+        ce.role,
+        ce.enrolled_at
+      FROM course_enrollments ce
+      JOIN courses c ON c.id = ce.course_id
+      WHERE ce.user_id = ?
+      ORDER BY c.code
+      `,
+      [userId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+}
+module.exports = { getEnrollmentCount, enrollInCourse, getMyCourses };

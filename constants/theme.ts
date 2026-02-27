@@ -5,6 +5,24 @@
 
 import { Platform } from 'react-native';
 
+export const theme = {
+  colors: {
+    bg: "#F6F7FB",
+    card: "#FFFFFF",
+    text: "#0F172A",
+    muted: "#64748B",
+    border: "#E2E8F0",
+    primary: "#4F46E5",   // indigo
+    primarySoft: "#EEF2FF",
+    danger: "#EF4444",
+    success: "#10B981",
+  },
+  radius: {
+    card: 18,
+    button: 14,
+  },
+};
+
 const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
 

@@ -5,5 +5,5 @@ const { getEnrollmentCount, enrollInCourse } = require("../controllers/enrollmen
 
 router.get("/courses/:crn/enrollment-count", getEnrollmentCount);
 router.post("/courses/:crn/enroll", requireAuth, enrollInCourse);
-
+router.get("/me/courses", requireAuth, getMyCourses)
 module.exports = router;
