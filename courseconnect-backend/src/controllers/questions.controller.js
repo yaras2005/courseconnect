@@ -1,15 +1,22 @@
 const db = require("../db");
-
+async function getCourseIdFromCrn(crn) {
+  const [rows] = await db.query(`SELECT id FROM courses WHERE code = ?`, [crn]);
+  return rows[0]?.id || null;
+}
 // GET /courses/:courseId/questions
-async function getCourseQuestions(req, res) {
-  const courseId = Number(req.params.courseId);
+async function getCourseQuestionsByCrn(req, res) {
+  const crn = String(req.params.crn);
 
   try {
+    const courseId = await getCourseIdFromCrn(crn);
+    if (!courseId) return res.status(404).json({ error: "Course not found" });
     const [rows] = await db.query(
       `
       SELECT 
         q.id,
+        ? AS crn,
         q.course_id,
+        q.user_id,
         q.title,
         q.body,
         q.author,
@@ -21,7 +28,7 @@ async function getCourseQuestions(req, res) {
       GROUP BY q.id
       ORDER BY q.created_at DESC
       `,
-      [courseId]
+      [crn, courseId]
     );
 
     // mysql returns COUNT as string sometimes; convert to number
@@ -34,27 +41,35 @@ async function getCourseQuestions(req, res) {
 }
 
 // POST /courses/:courseId/questions
-async function createCourseQuestion(req, res) {
-  const courseId = Number(req.params.courseId);
-  const { title, body, author } = req.body;
+async function createCourseQuestionByCrn(req, res) {
+  const crn = String(req.params.crn);
+  const { title, body } = req.body;
 
-  if (!title || !body || !author) {
-    return res.status(400).json({ error: "title, body, author are required" });
+  if (!title || !body) {
+    return res.status(400).json({ error: "title and body are required" });
   }
 
+  const userId = req.user.id;
+
   try {
+     const courseId = await getCourseIdFromCrn(crn);
+    if (!courseId) return res.status(404).json({ error: "Course not found" });
+    // get author's display name from users table
+    const [uRows] = await db.query(`SELECT name FROM users WHERE id = ?`, [userId]);
+    const authorName = uRows[0]?.name || "Unknown";
+
     const [result] = await db.query(
       `
-      INSERT INTO questions (course_id, title, body, author)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO questions (course_id, user_id, title, body, author)
+      VALUES (?, ?, ?, ?, ?)
       `,
-      [courseId, title, body, author]
+      [courseId, userId, title, body, authorName]
     );
 
     const insertedId = result.insertId;
 
     const [rows] = await db.query(
-      `SELECT id, course_id, title, body, author, created_at
+      `SELECT id, course_id, user_id, title, body, author, created_at
        FROM questions WHERE id = ?`,
       [insertedId]
     );
@@ -65,7 +80,6 @@ async function createCourseQuestion(req, res) {
     res.status(500).json({ error: "Server error" });
   }
 }
-
 // GET /questions/:id
 async function getQuestionDetails(req, res) {
   const id = Number(req.params.id);
@@ -101,24 +115,30 @@ async function getQuestionDetails(req, res) {
 
 // POST /questions/:id/comments
 async function addQuestionComment(req, res) {
-  const id = Number(req.params.id);
-  const { text, author } = req.body;
+  const questionId = Number(req.params.id);
+  const { text } = req.body;
 
-  if (!text || !author) {
-    return res.status(400).json({ error: "text and author are required" });
+  if (!text) {
+    return res.status(400).json({ error: "text is required" });
   }
 
+  const userId = req.user.id;
+
   try {
+    // get author's display name from users table
+    const [uRows] = await db.query(`SELECT name FROM users WHERE id = ?`, [userId]);
+    const authorName = uRows[0]?.name || "Unknown";
+
     const [result] = await db.query(
-      `INSERT INTO question_comments (question_id, text, author)
-       VALUES (?, ?, ?)`,
-      [id, text, author]
+      `INSERT INTO question_comments (question_id, user_id, text, author)
+       VALUES (?, ?, ?, ?)`,
+      [questionId, userId, text, authorName]
     );
 
     const insertedId = result.insertId;
 
     const [rows] = await db.query(
-      `SELECT id, question_id, text, author, created_at
+      `SELECT id, question_id, user_id, text, author, created_at
        FROM question_comments WHERE id = ?`,
       [insertedId]
     );
@@ -129,10 +149,9 @@ async function addQuestionComment(req, res) {
     res.status(500).json({ error: "Server error" });
   }
 }
-
 module.exports = {
-  getCourseQuestions,
-  createCourseQuestion,
+  getCourseQuestionsByCrn,
+  createCourseQuestionByCrn,
   getQuestionDetails,
   addQuestionComment,
 };

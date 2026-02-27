@@ -1,22 +1,24 @@
+const { requireAuth } = require("../middleware/auth");
 const express = require("express");
+
 const router = express.Router();
 const {
-  getCourseQuestions,
-  createCourseQuestion,
+  getCourseQuestionsByCrn,
+  createCourseQuestionByCrn,
   getQuestionDetails,
   addQuestionComment,
 } = require("../controllers/questions.controller");
 
 // List questions for a course + commentsCount
-router.get("/courses/:courseId/questions", getCourseQuestions);
+router.get("/courses/:crn/questions", getCourseQuestionsByCrn);
 
 // Create a new question
-router.post("/courses/:courseId/questions", createCourseQuestion);
+router.post("/courses/:crn/questions", requireAuth, createCourseQuestionByCrn);
 
 // Get one question + comments
 router.get("/questions/:id", getQuestionDetails);
 
 // Add comment to question
-router.post("/questions/:id/comments", addQuestionComment);
+router.post("/questions/:id/comments", requireAuth, addQuestionComment);
 
 module.exports = router;
